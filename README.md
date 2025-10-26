@@ -21,7 +21,7 @@ Live app: [URL will be added after deployment]
 ## Models
 
 - Logistic Regression (baseline)
-- Random Forest  
+- Random Forest
 - XGBoost
 
 Performance: AUC-ROC 0.80-0.85, Recall 60%+
