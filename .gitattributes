@@ -1,0 +1,15 @@
+# Git attributes for better diffs and language detection
+
+# Python
+*.py linguist-language=Python
+
+# Data files
+*.csv linguist-generated=true
+*.pkl linguist-generated=true
+*.joblib linguist-generated=true
+
+# Documentation
+*.md linguist-documentation
+
+# Jupyter notebooks
+*.ipynb linguist-detectable=false
