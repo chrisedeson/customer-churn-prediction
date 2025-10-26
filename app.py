@@ -46,22 +46,44 @@ st.markdown("""
     .main .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
+        max-width: 1200px;
+    }
+    
+    /* Header styling */
+    h1 {
+        padding-bottom: 0.5rem;
+    }
+    
+    h2 {
+        padding-top: 1rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    h3 {
+        padding-top: 0.5rem;
     }
     
     /* Metrics styling */
     [data-testid="stMetricValue"] {
-        font-size: 1.8rem;
+        font-size: 2rem;
         font-weight: 600;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        font-size: 1rem;
+        font-weight: 500;
     }
     
     /* Tab styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 2rem;
+        padding-top: 1rem;
     }
     
     .stTabs [data-baseweb="tab"] {
-        padding: 0.5rem 1.5rem;
+        padding: 0.75rem 1.5rem;
         font-weight: 500;
+        font-size: 1rem;
     }
     
     /* DataFrame styling */
@@ -69,28 +91,46 @@ st.markdown("""
         border-radius: 0.5rem;
     }
     
-    /* Button styling */
+    /* Button styling - more subtle */
     .stButton > button {
-        width: 100%;
         border-radius: 0.5rem;
         font-weight: 500;
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
     /* Expander styling */
     .streamlit-expanderHeader {
         font-weight: 500;
         border-radius: 0.5rem;
+        background-color: rgba(240, 242, 246, 0.5);
     }
     
     /* Success/Error message styling */
     .stAlert {
         border-radius: 0.5rem;
+        padding: 1rem;
     }
     
-    /* Chart styling */
-    .js-plotly-plot {
-        border-radius: 0.5rem;
+    /* Selectbox and input styling */
+    .stSelectbox, .stNumberInput, .stTextInput {
+        margin-bottom: 1rem;
+    }
+    
+    /* Better spacing for columns */
+    [data-testid="column"] {
+        padding: 0.5rem;
+    }
+    
+    /* Divider styling */
+    hr {
+        margin: 2rem 0;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -152,37 +192,56 @@ def create_input_form():
     """Create input form for prediction."""
     st.subheader("Customer Information")
     
+    # Demographics section
+    with st.expander("👤 Demographics & Account", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            gender = st.selectbox("Gender", ["Female", "Male"])
+            senior_citizen = st.selectbox("Senior Citizen", [0, 1], format_func=lambda x: "No" if x == 0 else "Yes")
+        
+        with col2:
+            partner = st.selectbox("Partner", ["No", "Yes"])
+            dependents = st.selectbox("Dependents", ["No", "Yes"])
+        
+        with col3:
+            tenure = st.number_input("Tenure (months)", min_value=0, max_value=72, value=12)
+            contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
+    
+    # Services section
+    with st.expander("📞 Services", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            phone_service = st.selectbox("Phone Service", ["No", "Yes"])
+            multiple_lines = st.selectbox("Multiple Lines", ["No", "No phone service", "Yes"])
+            internet_service = st.selectbox("Internet Service", ["DSL", "Fiber optic", "No"])
+        
+        with col2:
+            online_security = st.selectbox("Online Security", ["No", "No internet service", "Yes"])
+            online_backup = st.selectbox("Online Backup", ["No", "No internet service", "Yes"])
+            device_protection = st.selectbox("Device Protection", ["No", "No internet service", "Yes"])
+        
+        with col3:
+            tech_support = st.selectbox("Tech Support", ["No", "No internet service", "Yes"])
+            streaming_tv = st.selectbox("Streaming TV", ["No", "No internet service", "Yes"])
+            streaming_movies = st.selectbox("Streaming Movies", ["No", "No internet service", "Yes"])
+    
+    # Billing section
+    with st.expander("💳 Billing", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            monthly_charges = st.number_input("Monthly Charges ($)", min_value=0.0, max_value=200.0, value=70.0, step=5.0)
+        
+        with col2:
+            total_charges = st.number_input("Total Charges ($)", min_value=0.0, max_value=10000.0, value=840.0, step=50.0)
+        
+        with col3:
+            paperless_billing = st.selectbox("Paperless Billing", ["No", "Yes"])
+    
     col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        senior_citizen = st.selectbox("Senior Citizen", [0, 1], format_func=lambda x: "No" if x == 0 else "Yes")
-        tenure = st.number_input("Tenure (months)", min_value=0, max_value=72, value=12)
-        monthly_charges = st.number_input("Monthly Charges ($)", min_value=0.0, max_value=200.0, value=70.0, step=5.0)
-        total_charges = st.number_input("Total Charges ($)", min_value=0.0, max_value=10000.0, value=840.0, step=50.0)
-    
     with col2:
-        gender = st.selectbox("Gender", ["Female", "Male"])
-        partner = st.selectbox("Partner", ["No", "Yes"])
-        dependents = st.selectbox("Dependents", ["No", "Yes"])
-        phone_service = st.selectbox("Phone Service", ["No", "Yes"])
-        multiple_lines = st.selectbox("Multiple Lines", ["No", "No phone service", "Yes"])
-    
-    with col3:
-        internet_service = st.selectbox("Internet Service", ["DSL", "Fiber optic", "No"])
-        online_security = st.selectbox("Online Security", ["No", "No internet service", "Yes"])
-        online_backup = st.selectbox("Online Backup", ["No", "No internet service", "Yes"])
-        device_protection = st.selectbox("Device Protection", ["No", "No internet service", "Yes"])
-        tech_support = st.selectbox("Tech Support", ["No", "No internet service", "Yes"])
-    
-    col4, col5 = st.columns(2)
-    
-    with col4:
-        streaming_tv = st.selectbox("Streaming TV", ["No", "No internet service", "Yes"])
-        streaming_movies = st.selectbox("Streaming Movies", ["No", "No internet service", "Yes"])
-        contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
-    
-    with col5:
-        paperless_billing = st.selectbox("Paperless Billing", ["No", "Yes"])
         payment_method = st.selectbox(
             "Payment Method",
             ["Bank transfer (automatic)", "Credit card (automatic)", 
@@ -299,9 +358,16 @@ def render_predict_tab(models_dict, train_df):
     st.header("Customer Churn Prediction")
     st.markdown("Enter customer information below to predict churn probability and estimated lifetime value.")
     
+    st.markdown("<br>", unsafe_allow_html=True)
+    
     input_dict = create_input_form()
     
-    if st.button("🔮 Predict Churn", type="primary", use_container_width=True):
+    # Center the button with better styling
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        predict_btn = st.button("🔮 Predict Churn", type="primary", use_container_width=True)
+    
+    if predict_btn:
         with st.spinner("Analyzing customer data..."):
             # Engineer features
             input_df = engineer_features_from_input(input_dict)
@@ -313,16 +379,14 @@ def render_predict_tab(models_dict, train_df):
             result = make_prediction(X_input, models_dict, model_choice='xgb')
         
         # Display results with color coding
-        st.divider()
+        st.markdown("<br>", unsafe_allow_html=True)
         st.subheader("📊 Prediction Results")
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
             churn_prob = result['churn_percentage']
-            delta_color = "inverse" if churn_prob < 33 else "normal"
-            st.metric("Churn Probability", f"{churn_prob:.1f}%", 
-                     delta=f"{result['risk_label']} Risk", delta_color=delta_color)
+            st.metric("Churn Probability", f"{churn_prob:.1f}%")
         with col2:
             risk_emoji = {"Low": "✅", "Medium": "⚠️", "High": "🚨"}
             st.metric("Risk Level", f"{risk_emoji.get(result['risk_label'], '')} {result['risk_label']}")
