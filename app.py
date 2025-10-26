@@ -148,7 +148,24 @@ def load_processed_data():
 @st.cache_resource
 def load_models():
     """Load all trained models and preprocessor."""
-    return load_prediction_artifacts()
+    # Load only essential models - lazy load RF only when needed
+    import joblib
+    from src.config import LOGISTIC_MODEL, XGB_MODEL, PREPROCESSOR_FILE
+    
+    models = {
+        'logistic': joblib.load(LOGISTIC_MODEL),
+        'xgb': joblib.load(XGB_MODEL),
+        'scaler': joblib.load(PREPROCESSOR_FILE)
+    }
+    return models
+
+
+@st.cache_resource
+def load_rf_model():
+    """Load Random Forest model only when needed (it's 12MB)."""
+    import joblib
+    from src.config import RF_MODEL
+    return joblib.load(RF_MODEL)
 
 
 @st.cache_data
@@ -162,6 +179,10 @@ def compute_test_metrics(_models_dict, test_df):
         _models_dict['scaler'].transform(X_test),
         columns=X_test.columns
     )
+    
+    # Load RF model only when needed (lazy loading)
+    if 'rf' not in _models_dict:
+        _models_dict['rf'] = load_rf_model()
     
     # Evaluate each model
     all_metrics = []
@@ -360,6 +381,10 @@ def render_predict_tab(models_dict, train_df):
     
     st.markdown("<br>", unsafe_allow_html=True)
     
+    # Initialize session state for prediction results
+    if 'prediction_result' not in st.session_state:
+        st.session_state.prediction_result = None
+    
     input_dict = create_input_form()
     
     # Center the button with better styling
@@ -375,7 +400,11 @@ def render_predict_tab(models_dict, train_df):
         X_input = encode_input_features(input_df, train_df.drop(columns=[TARGET_COL]))
         
         # Make prediction (fast - no spinner needed)
-        result = make_prediction(X_input, models_dict, model_choice='xgb')
+        st.session_state.prediction_result = make_prediction(X_input, models_dict, model_choice='xgb')
+    
+    # Display results if prediction exists
+    if st.session_state.prediction_result is not None:
+        result = st.session_state.prediction_result
         
         # Display results with color coding
         st.markdown("<br>", unsafe_allow_html=True)
