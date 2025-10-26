@@ -55,3 +55,10 @@ Thumbs.db
 
 # Environment
 .env
+
+# Documentation (keep local only)
+AI_USAGE.md
+CHECKLIST.md
+DEPLOYMENT.md
+PROJECT_SUMMARY.md
+task.md
