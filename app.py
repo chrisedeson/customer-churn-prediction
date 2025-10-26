@@ -35,8 +35,105 @@ from train_models import evaluate_model
 st.set_page_config(
     page_title="Churn Prediction & CLV",
     page_icon="📊",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
+
+# Custom CSS for theme-aware styling
+st.markdown("""
+    <style>
+    /* Main container styling */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 1200px;
+    }
+    
+    /* Header styling */
+    h1 {
+        padding-bottom: 0.5rem;
+    }
+    
+    h2 {
+        padding-top: 1rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    h3 {
+        padding-top: 0.5rem;
+    }
+    
+    /* Metrics styling */
+    [data-testid="stMetricValue"] {
+        font-size: 2rem;
+        font-weight: 600;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        font-size: 1rem;
+        font-weight: 500;
+    }
+    
+    /* Tab styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2rem;
+        padding-top: 1rem;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        font-size: 1rem;
+    }
+    
+    /* DataFrame styling */
+    [data-testid="stDataFrame"] {
+        border-radius: 0.5rem;
+    }
+    
+    /* Button styling - more subtle */
+    .stButton > button {
+        border-radius: 0.5rem;
+        font-weight: 500;
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        font-weight: 500;
+        border-radius: 0.5rem;
+        background-color: rgba(240, 242, 246, 0.5);
+    }
+    
+    /* Success/Error message styling */
+    .stAlert {
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+    
+    /* Selectbox and input styling */
+    .stSelectbox, .stNumberInput, .stTextInput {
+        margin-bottom: 1rem;
+    }
+    
+    /* Better spacing for columns */
+    [data-testid="column"] {
+        padding: 0.5rem;
+    }
+    
+    /* Divider styling */
+    hr {
+        margin: 2rem 0;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 
 @st.cache_data
@@ -95,37 +192,56 @@ def create_input_form():
     """Create input form for prediction."""
     st.subheader("Customer Information")
     
+    # Demographics section
+    with st.expander("👤 Demographics & Account", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            gender = st.selectbox("Gender", ["Female", "Male"])
+            senior_citizen = st.selectbox("Senior Citizen", [0, 1], format_func=lambda x: "No" if x == 0 else "Yes")
+        
+        with col2:
+            partner = st.selectbox("Partner", ["No", "Yes"])
+            dependents = st.selectbox("Dependents", ["No", "Yes"])
+        
+        with col3:
+            tenure = st.number_input("Tenure (months)", min_value=0, max_value=72, value=12)
+            contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
+    
+    # Services section
+    with st.expander("📞 Services", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            phone_service = st.selectbox("Phone Service", ["No", "Yes"])
+            multiple_lines = st.selectbox("Multiple Lines", ["No", "No phone service", "Yes"])
+            internet_service = st.selectbox("Internet Service", ["DSL", "Fiber optic", "No"])
+        
+        with col2:
+            online_security = st.selectbox("Online Security", ["No", "No internet service", "Yes"])
+            online_backup = st.selectbox("Online Backup", ["No", "No internet service", "Yes"])
+            device_protection = st.selectbox("Device Protection", ["No", "No internet service", "Yes"])
+        
+        with col3:
+            tech_support = st.selectbox("Tech Support", ["No", "No internet service", "Yes"])
+            streaming_tv = st.selectbox("Streaming TV", ["No", "No internet service", "Yes"])
+            streaming_movies = st.selectbox("Streaming Movies", ["No", "No internet service", "Yes"])
+    
+    # Billing section
+    with st.expander("💳 Billing", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            monthly_charges = st.number_input("Monthly Charges ($)", min_value=0.0, max_value=200.0, value=70.0, step=5.0)
+        
+        with col2:
+            total_charges = st.number_input("Total Charges ($)", min_value=0.0, max_value=10000.0, value=840.0, step=50.0)
+        
+        with col3:
+            paperless_billing = st.selectbox("Paperless Billing", ["No", "Yes"])
+    
     col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        senior_citizen = st.selectbox("Senior Citizen", [0, 1], format_func=lambda x: "No" if x == 0 else "Yes")
-        tenure = st.number_input("Tenure (months)", min_value=0, max_value=72, value=12)
-        monthly_charges = st.number_input("Monthly Charges ($)", min_value=0.0, max_value=200.0, value=70.0, step=5.0)
-        total_charges = st.number_input("Total Charges ($)", min_value=0.0, max_value=10000.0, value=840.0, step=50.0)
-    
     with col2:
-        gender = st.selectbox("Gender", ["Female", "Male"])
-        partner = st.selectbox("Partner", ["No", "Yes"])
-        dependents = st.selectbox("Dependents", ["No", "Yes"])
-        phone_service = st.selectbox("Phone Service", ["No", "Yes"])
-        multiple_lines = st.selectbox("Multiple Lines", ["No", "No phone service", "Yes"])
-    
-    with col3:
-        internet_service = st.selectbox("Internet Service", ["DSL", "Fiber optic", "No"])
-        online_security = st.selectbox("Online Security", ["No", "No internet service", "Yes"])
-        online_backup = st.selectbox("Online Backup", ["No", "No internet service", "Yes"])
-        device_protection = st.selectbox("Device Protection", ["No", "No internet service", "Yes"])
-        tech_support = st.selectbox("Tech Support", ["No", "No internet service", "Yes"])
-    
-    col4, col5 = st.columns(2)
-    
-    with col4:
-        streaming_tv = st.selectbox("Streaming TV", ["No", "No internet service", "Yes"])
-        streaming_movies = st.selectbox("Streaming Movies", ["No", "No internet service", "Yes"])
-        contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
-    
-    with col5:
-        paperless_billing = st.selectbox("Paperless Billing", ["No", "Yes"])
         payment_method = st.selectbox(
             "Payment Method",
             ["Bank transfer (automatic)", "Credit card (automatic)", 
@@ -239,47 +355,61 @@ def encode_input_features(df, train_df):
 
 def render_predict_tab(models_dict, train_df):
     """Render the Predict tab."""
-    st.header("Churn Prediction")
+    st.header("Customer Churn Prediction")
+    st.markdown("Enter customer information below to predict churn probability and estimated lifetime value.")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     input_dict = create_input_form()
     
-    if st.button("Predict Churn", type="primary"):
-        # Engineer features
-        input_df = engineer_features_from_input(input_dict)
+    # Center the button with better styling
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        predict_btn = st.button("🔮 Predict Churn", type="primary", use_container_width=True)
+    
+    if predict_btn:
+        with st.spinner("Analyzing customer data..."):
+            # Engineer features
+            input_df = engineer_features_from_input(input_dict)
+            
+            # Encode features
+            X_input = encode_input_features(input_df, train_df.drop(columns=[TARGET_COL]))
+            
+            # Make prediction
+            result = make_prediction(X_input, models_dict, model_choice='xgb')
         
-        # Encode features
-        X_input = encode_input_features(input_df, train_df.drop(columns=[TARGET_COL]))
-        
-        # Make prediction
-        result = make_prediction(X_input, models_dict, model_choice='xgb')
-        
-        # Display results
-        st.subheader("Prediction Results")
+        # Display results with color coding
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.subheader("📊 Prediction Results")
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("Churn Probability", f"{result['churn_percentage']:.1f}%")
+            churn_prob = result['churn_percentage']
+            st.metric("Churn Probability", f"{churn_prob:.1f}%")
         with col2:
-            st.metric("Risk Level", result['risk_label'])
+            risk_emoji = {"Low": "✅", "Medium": "⚠️", "High": "🚨"}
+            st.metric("Risk Level", f"{risk_emoji.get(result['risk_label'], '')} {result['risk_label']}")
         with col3:
-            st.metric("Estimated CLV", f"${result['clv']:.2f}")
+            st.metric("Estimated CLV", f"${result['clv']:.2f}",
+                     help="Customer Lifetime Value based on churn probability")
         
         # Show CLV breakdown
-        st.subheader("CLV Calculation")
-        st.info(f"""
-        **Formula:** CLV = Monthly Charges × Expected Tenure
-        
-        - Monthly Charges: ${result['monthly_charges']:.2f}
-        - Expected Tenure: {result['expected_tenure']:.1f} months
-        - **Estimated CLV: ${result['clv']:.2f}**
-        
-        Note: Expected tenure is computed as a weighted average based on churn probability 
-        (6 months for churners, 24 months for non-churners).
-        """)
+        with st.expander("💡 CLV Calculation Details", expanded=False):
+            st.markdown(f"""
+            **Formula:** CLV = Monthly Charges × Expected Tenure
+            
+            - **Monthly Charges:** ${result['monthly_charges']:.2f}
+            - **Expected Tenure:** {result['expected_tenure']:.1f} months
+            - **Estimated CLV:** ${result['clv']:.2f}
+            
+            *Expected tenure is computed as a weighted average based on churn probability 
+            (6 months for churners, 24 months for non-churners).*
+            """)
         
         # Local explanation
-        st.subheader("Prediction Explanation")
+        st.divider()
+        st.subheader("🔍 Feature Impact Analysis")
         
         try:
             model = models_dict['xgb']
@@ -289,10 +419,10 @@ def render_predict_tab(models_dict, train_df):
             )
             
             fig = plot_local_explanation(explanation_df, top_n=10)
-            st.pyplot(fig)
+            st.pyplot(fig, use_container_width=True)
             plt.close()
             
-            st.caption("Green bars increase churn risk, red bars decrease churn risk.")
+            st.caption("🟢 Green bars increase churn risk | 🔴 Red bars decrease churn risk")
         except Exception as e:
             st.warning(f"Could not generate explanation: {str(e)}")
 
@@ -341,22 +471,28 @@ def render_model_performance_tab(models_dict, test_df):
         y_test_array = y_test.values if hasattr(y_test, 'values') else y_test
         cm = confusion_matrix(y_test_array, y_pred)
         
-        fig, ax = plt.subplots(figsize=(6, 5))
-        im = ax.imshow(cm, cmap='Blues')
+        fig, ax = plt.subplots(figsize=(8, 6))
+        fig.patch.set_facecolor('none')
+        ax.set_facecolor('none')
+        
+        im = ax.imshow(cm, cmap='Blues', alpha=0.8)
         ax.set_xticks([0, 1])
         ax.set_yticks([0, 1])
-        ax.set_xticklabels(['No Churn', 'Churn'])
-        ax.set_yticklabels(['No Churn', 'Churn'])
-        ax.set_xlabel('Predicted')
-        ax.set_ylabel('Actual')
+        ax.set_xticklabels(['No Churn', 'Churn'], fontsize=11)
+        ax.set_yticklabels(['No Churn', 'Churn'], fontsize=11)
+        ax.set_xlabel('Predicted', fontsize=12, fontweight='500')
+        ax.set_ylabel('Actual', fontsize=12, fontweight='500')
         
         # Add text annotations
         for i in range(2):
             for j in range(2):
-                text = ax.text(j, i, cm[i, j], ha="center", va="center", color="black", fontsize=20)
+                text = ax.text(j, i, cm[i, j], ha="center", va="center", 
+                             color="white" if cm[i, j] > cm.max() / 2 else "black", 
+                             fontsize=18, fontweight='600')
         
         plt.colorbar(im, ax=ax)
-        st.pyplot(fig)
+        plt.tight_layout()
+        st.pyplot(fig, use_container_width=True)
         plt.close()
     
     with col2:
@@ -364,24 +500,29 @@ def render_model_performance_tab(models_dict, test_df):
         st.subheader("ROC Curves")
         from sklearn.metrics import roc_curve, auc
         
-        fig, ax = plt.subplots(figsize=(6, 5))
+        fig, ax = plt.subplots(figsize=(8, 6))
+        fig.patch.set_facecolor('none')
+        ax.set_facecolor('none')
         
         y_test_array = y_test.values if hasattr(y_test, 'values') else y_test
         
+        colors = {'Logistic': '#1f77b4', 'Random Forest': '#ff7f0e', 'XGBoost': '#2ca02c'}
         for name, key in [("Logistic", "logistic"), ("Random Forest", "rf"), ("XGBoost", "xgb")]:
             y_pred_proba = predictions[key]['y_pred_proba']
             fpr, tpr, _ = roc_curve(y_test_array, y_pred_proba)
             roc_auc = auc(fpr, tpr)
-            ax.plot(fpr, tpr, label=f'{name} (AUC = {roc_auc:.3f})')
+            ax.plot(fpr, tpr, label=f'{name} (AUC = {roc_auc:.3f})', 
+                   linewidth=2.5, color=colors[name])
         
-        ax.plot([0, 1], [0, 1], 'k--', label='Random')
-        ax.set_xlabel('False Positive Rate')
-        ax.set_ylabel('True Positive Rate')
-        ax.set_title('ROC Curves')
-        ax.legend()
-        ax.grid(alpha=0.3)
+        ax.plot([0, 1], [0, 1], 'k--', alpha=0.4, linewidth=1.5, label='Random Classifier')
+        ax.set_xlabel('False Positive Rate', fontsize=12, fontweight='500')
+        ax.set_ylabel('True Positive Rate', fontsize=12, fontweight='500')
+        ax.set_title('ROC Curves Comparison', fontsize=13, fontweight='600', pad=15)
+        ax.legend(loc='lower right', frameon=True, fontsize=10)
+        ax.grid(alpha=0.2, linestyle='--')
         
-        st.pyplot(fig)
+        plt.tight_layout()
+        st.pyplot(fig, use_container_width=True)
         plt.close()
     
     # Feature importance
@@ -428,35 +569,52 @@ def render_clv_overview_tab(train_df):
     
     with col1:
         st.subheader("CLV Distribution")
-        fig, ax = plt.subplots(figsize=(8, 5))
-        ax.hist(train_with_clv['clv'], bins=50, edgecolor='black', alpha=0.7)
-        ax.set_xlabel('Customer Lifetime Value ($)')
-        ax.set_ylabel('Count')
-        ax.set_title('CLV Distribution')
-        ax.grid(axis='y', alpha=0.3)
-        st.pyplot(fig)
+        fig, ax = plt.subplots(figsize=(8, 6))
+        fig.patch.set_facecolor('none')
+        ax.set_facecolor('none')
+        
+        ax.hist(train_with_clv['clv'], bins=50, edgecolor='white', 
+               alpha=0.8, color='#1f77b4', linewidth=0.5)
+        ax.set_xlabel('Customer Lifetime Value ($)', fontsize=12, fontweight='500')
+        ax.set_ylabel('Frequency', fontsize=12, fontweight='500')
+        ax.set_title('CLV Distribution', fontsize=13, fontweight='600', pad=15)
+        ax.grid(axis='y', alpha=0.2, linestyle='--')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        
+        plt.tight_layout()
+        st.pyplot(fig, use_container_width=True)
         plt.close()
     
     with col2:
         st.subheader("Churn Rate by CLV Quartile")
         churn_by_quartile = compute_churn_rate_by_quartile(train_with_clv)
         
-        fig, ax = plt.subplots(figsize=(8, 5))
+        fig, ax = plt.subplots(figsize=(8, 6))
+        fig.patch.set_facecolor('none')
+        ax.set_facecolor('none')
+        
         quartiles = churn_by_quartile.index
         churn_rates = churn_by_quartile['churn_rate'] * 100
         
-        bars = ax.bar(quartiles, churn_rates, edgecolor='black', alpha=0.7)
-        ax.set_xlabel('CLV Quartile')
-        ax.set_ylabel('Churn Rate (%)')
-        ax.set_title('Churn Rate by CLV Quartile')
-        ax.grid(axis='y', alpha=0.3)
+        colors = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c']
+        bars = ax.bar(quartiles, churn_rates, color=colors, edgecolor='white', 
+                     alpha=0.8, linewidth=0.5)
+        ax.set_xlabel('CLV Quartile', fontsize=12, fontweight='500')
+        ax.set_ylabel('Churn Rate (%)', fontsize=12, fontweight='500')
+        ax.set_title('Churn Rate by CLV Quartile', fontsize=13, fontweight='600', pad=15)
+        ax.grid(axis='y', alpha=0.2, linestyle='--')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
         
         for bar in bars:
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width() / 2., height,
-                   f'{height:.1f}%', ha='center', va='bottom')
+                   f'{height:.1f}%', ha='center', va='bottom', 
+                   fontsize=10, fontweight='500')
         
-        st.pyplot(fig)
+        plt.tight_layout()
+        st.pyplot(fig, use_container_width=True)
         plt.close()
     
     # Insights
@@ -494,7 +652,15 @@ def render_clv_overview_tab(train_df):
 
 def main():
     """Main application entry point."""
-    st.title("Customer Churn Prediction & CLV Analysis")
+    # Header
+    st.title("📊 Customer Churn Prediction & CLV Analysis")
+    st.markdown("""
+    <div style='padding: 1rem 0; margin-bottom: 1.5rem;'>
+        <p style='font-size: 1.1rem; opacity: 0.8; margin: 0;'>
+            Predict customer churn probability, analyze model performance, and explore customer lifetime value insights.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Load data and models
     try:
@@ -502,7 +668,7 @@ def main():
         models_dict = load_models()
     except FileNotFoundError as e:
         st.error(f"""
-        Required files not found. Please run the data preparation and model training pipeline first:
+        **Required files not found.** Please run the data preparation and model training pipeline first:
         
         ```bash
         make data
@@ -513,8 +679,38 @@ def main():
         """)
         return
     
+    # Sidebar info
+    with st.sidebar:
+        st.header("About")
+        st.markdown("""
+        This application provides:
+        
+        **🎯 Churn Prediction**
+        - Individual customer risk assessment
+        - Multiple ML models (Logistic, RF, XGBoost)
+        - Feature importance explanations
+        
+        **📈 Model Performance**
+        - Comprehensive metrics comparison
+        - ROC curves and confusion matrices
+        - Feature importance analysis
+        
+        **💰 CLV Analysis**
+        - Customer lifetime value insights
+        - Quartile-based segmentation
+        - Retention strategy recommendations
+        """)
+        
+        st.divider()
+        
+        # Dataset info
+        st.subheader("Dataset Info")
+        st.metric("Total Customers", f"{len(train_df) + len(val_df) + len(test_df):,}")
+        st.metric("Training Samples", f"{len(train_df):,}")
+        st.metric("Features", len(train_df.columns) - 1)
+    
     # Create tabs
-    tab1, tab2, tab3 = st.tabs(["Predict", "Model Performance", "CLV Overview"])
+    tab1, tab2, tab3 = st.tabs(["🎯 Predict", "📈 Model Performance", "💰 CLV Overview"])
     
     with tab1:
         render_predict_tab(models_dict, train_df)

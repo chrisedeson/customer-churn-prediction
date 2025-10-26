@@ -1,0 +1,24 @@
+[theme]
+# Primary accent color for interactive elements - more professional blue
+primaryColor = "#4A90E2"
+
+# Background color for the main content area
+backgroundColor = "#FFFFFF"
+
+# Background color used for the sidebar and most interactive widgets
+secondaryBackgroundColor = "#F5F7FA"
+
+# Color used for almost all text
+textColor = "#262730"
+
+# Font family for all text in the app, except code blocks
+font = "sans serif"
+
+[server]
+# Enables support for Cross-Origin Resource Sharing (CORS) protection
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+# Internet address where the app is hosted
+gatherUsageStats = false
