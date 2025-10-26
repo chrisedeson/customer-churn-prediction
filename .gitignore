@@ -39,14 +39,16 @@ wheels/
 Thumbs.db
 
 # Data (large files)
-*.csv
-*.parquet
+# Temporarily commented for deployment
+# *.csv
+# *.parquet
 
 # Models
-*.pkl
-*.joblib
-*.h5
-*.pt
+# Temporarily commented for deployment
+# *.pkl
+# *.joblib
+# *.h5
+# *.pt
 
 # Logs
 *.log
