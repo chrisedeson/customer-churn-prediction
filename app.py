@@ -159,16 +159,16 @@ def engineer_features_from_input(input_dict):
     """Apply same feature engineering as training data."""
     df = pd.DataFrame([input_dict])
     
-    # Tenure bucket
+    # Tenure bucket - encoded numerically (alphabetical: 0-6m=0, 12-24m=1, 24m+=2, 6-12m=3)
     tenure = df['tenure'].iloc[0]
     if tenure < 6:
-        df['tenure_bucket'] = '0-6m'
+        df['tenure_bucket'] = 0  # '0-6m'
     elif tenure < 12:
-        df['tenure_bucket'] = '6-12m'
+        df['tenure_bucket'] = 3  # '6-12m'
     elif tenure < 24:
-        df['tenure_bucket'] = '12-24m'
+        df['tenure_bucket'] = 1  # '12-24m'
     else:
-        df['tenure_bucket'] = '24m+'
+        df['tenure_bucket'] = 2  # '24m+'
     
     # Services count
     service_cols = ['PhoneService', 'MultipleLines', 'InternetService',
@@ -203,17 +203,33 @@ def engineer_features_from_input(input_dict):
 
 
 def encode_input_features(df, train_df):
-    """Encode categorical features to match training data encoding."""
-    from sklearn.preprocessing import LabelEncoder
-    
+    """Encode categorical features to match training data encoding (alphabetical)."""
     df = df.copy()
-    categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
     
-    for col in categorical_cols:
-        le = LabelEncoder()
-        # Fit on train data to get same encoding
-        le.fit(train_df[col])
-        df[col] = le.transform(df[col])
+    # Manual encoding maps (alphabetical order as used in data_prep.py)
+    encoding_maps = {
+        'gender': {'Female': 0, 'Male': 1},
+        'Partner': {'No': 0, 'Yes': 1},
+        'Dependents': {'No': 0, 'Yes': 1},
+        'PhoneService': {'No': 0, 'Yes': 1},
+        'MultipleLines': {'No': 0, 'No phone service': 1, 'Yes': 2},
+        'InternetService': {'DSL': 0, 'Fiber optic': 1, 'No': 2},
+        'OnlineSecurity': {'No': 0, 'No internet service': 1, 'Yes': 2},
+        'OnlineBackup': {'No': 0, 'No internet service': 1, 'Yes': 2},
+        'DeviceProtection': {'No': 0, 'No internet service': 1, 'Yes': 2},
+        'TechSupport': {'No': 0, 'No internet service': 1, 'Yes': 2},
+        'StreamingTV': {'No': 0, 'No internet service': 1, 'Yes': 2},
+        'StreamingMovies': {'No': 0, 'No internet service': 1, 'Yes': 2},
+        'Contract': {'Month-to-month': 0, 'One year': 1, 'Two year': 2},
+        'PaperlessBilling': {'No': 0, 'Yes': 1},
+        'PaymentMethod': {'Bank transfer (automatic)': 0, 'Credit card (automatic)': 1, 
+                         'Electronic check': 2, 'Mailed check': 3}
+    }
+    
+    # Apply encoding
+    for col, mapping in encoding_maps.items():
+        if col in df.columns:
+            df[col] = df[col].map(mapping)
     
     # Ensure same column order as training
     df = df[train_df.columns]
