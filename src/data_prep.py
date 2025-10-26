@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import urllib.request
 
-from config import (
+from src.config import (
     DATA_URL, RAW_DATA_FILE, TRAIN_FILE, VAL_FILE, TEST_FILE,
     TRAIN_RATIO, VAL_RATIO, RANDOM_STATE, TARGET_COL, DROP_COLS,
     TENURE_BUCKETS, SERVICE_COLUMNS, DATA_RAW, DATA_PROCESSED

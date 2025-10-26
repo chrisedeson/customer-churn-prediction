@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from config import (
+from src.config import (
     TRAIN_FILE, VAL_FILE, TEST_FILE, TARGET_COL,
     EXPECTED_TENURE_NON_CHURNER, EXPECTED_TENURE_CHURNER
 )

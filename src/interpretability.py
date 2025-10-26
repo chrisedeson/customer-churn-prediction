@@ -7,7 +7,7 @@ import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 
-from config import (
+from src.config import (
     LOGISTIC_MODEL, RF_MODEL, XGB_MODEL, PREPROCESSOR_FILE,
     TEST_FILE, TARGET_COL
 )

@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import joblib
 
-from config import (
+from src.config import (
     LOGISTIC_MODEL, RF_MODEL, XGB_MODEL, PREPROCESSOR_FILE,
     EXPECTED_TENURE_NON_CHURNER, EXPECTED_TENURE_CHURNER,
     RISK_LOW, RISK_MEDIUM
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     print("Models loaded successfully")
     
     # Test with sample data
-    from config import TEST_FILE, TARGET_COL
+    from src.config import TEST_FILE, TARGET_COL
     test_df = pd.read_csv(TEST_FILE)
     sample = test_df.drop(columns=[TARGET_COL]).head(1)
     

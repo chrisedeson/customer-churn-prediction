@@ -15,7 +15,7 @@ from sklearn.metrics import (
 )
 import matplotlib.pyplot as plt
 
-from config import (
+from src.config import (
     TRAIN_FILE, VAL_FILE, TEST_FILE, TARGET_COL,
     LOGISTIC_MODEL, RF_MODEL, XGB_MODEL, PREPROCESSOR_FILE,
     LOGISTIC_PARAMS, RF_PARAMS, XGB_PARAMS, MODELS_DIR
