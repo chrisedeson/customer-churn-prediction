@@ -322,7 +322,8 @@ def render_model_performance_tab(models_dict, test_df):
         from sklearn.metrics import confusion_matrix
         
         y_pred = predictions[model_key]['y_pred']
-        cm = confusion_matrix(y_test, y_pred)
+        y_test_array = y_test.values if hasattr(y_test, 'values') else y_test
+        cm = confusion_matrix(y_test_array, y_pred)
         
         fig, ax = plt.subplots(figsize=(6, 5))
         im = ax.imshow(cm, cmap='Blues')
@@ -349,9 +350,11 @@ def render_model_performance_tab(models_dict, test_df):
         
         fig, ax = plt.subplots(figsize=(6, 5))
         
+        y_test_array = y_test.values if hasattr(y_test, 'values') else y_test
+        
         for name, key in [("Logistic", "logistic"), ("Random Forest", "rf"), ("XGBoost", "xgb")]:
             y_pred_proba = predictions[key]['y_pred_proba']
-            fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
+            fpr, tpr, _ = roc_curve(y_test_array, y_pred_proba)
             roc_auc = auc(fpr, tpr)
             ax.plot(fpr, tpr, label=f'{name} (AUC = {roc_auc:.3f})')
         
