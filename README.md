@@ -2,7 +2,7 @@
 
 Predicts customer churn probability and estimates Customer Lifetime Value (CLV) for SaaS retention strategy.
 
-GitHub: https://github.com/chrisedeson/customer-churn-prediction
+Live: [https://customer-churn-prediction-analysis.streamlit.app/](https://customer-churn-prediction-analysis.streamlit.app/)
 
 ## Quick Start
 
