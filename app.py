@@ -368,15 +368,14 @@ def render_predict_tab(models_dict, train_df):
         predict_btn = st.button("🔮 Predict Churn", type="primary", use_container_width=True)
     
     if predict_btn:
-        with st.spinner("Analyzing customer data..."):
-            # Engineer features
-            input_df = engineer_features_from_input(input_dict)
-            
-            # Encode features
-            X_input = encode_input_features(input_df, train_df.drop(columns=[TARGET_COL]))
-            
-            # Make prediction
-            result = make_prediction(X_input, models_dict, model_choice='xgb')
+        # Engineer features
+        input_df = engineer_features_from_input(input_dict)
+        
+        # Encode features
+        X_input = encode_input_features(input_df, train_df.drop(columns=[TARGET_COL]))
+        
+        # Make prediction (fast - no spinner needed)
+        result = make_prediction(X_input, models_dict, model_choice='xgb')
         
         # Display results with color coding
         st.markdown("<br>", unsafe_allow_html=True)
@@ -407,24 +406,25 @@ def render_predict_tab(models_dict, train_df):
             (6 months for churners, 24 months for non-churners).*
             """)
         
-        # Local explanation
+        # Local explanation (optional - behind expander to avoid slow loading)
         st.divider()
-        st.subheader("🔍 Feature Impact Analysis")
         
-        try:
-            model = models_dict['xgb']
-            X_scaled = preprocess_input(X_input, models_dict['scaler'])
-            explanation_df, _ = explain_local_prediction(
-                model, X_scaled, X_input.columns.tolist(), model_type='tree'
-            )
-            
-            fig = plot_local_explanation(explanation_df, top_n=10)
-            st.pyplot(fig, use_container_width=True)
-            plt.close()
-            
-            st.caption("🟢 Green bars increase churn risk | 🔴 Red bars decrease churn risk")
-        except Exception as e:
-            st.warning(f"Could not generate explanation: {str(e)}")
+        with st.expander("🔍 Feature Impact Analysis (Click to view)", expanded=False):
+            try:
+                with st.spinner("Generating explanation..."):
+                    model = models_dict['xgb']
+                    X_scaled = preprocess_input(X_input, models_dict['scaler'])
+                    explanation_df, _ = explain_local_prediction(
+                        model, X_scaled, X_input.columns.tolist(), model_type='tree'
+                    )
+                    
+                    fig = plot_local_explanation(explanation_df, top_n=10)
+                    st.pyplot(fig, use_container_width=True)
+                    plt.close()
+                    
+                    st.caption("🟢 Green bars increase churn risk | 🔴 Red bars decrease churn risk")
+            except Exception as e:
+                st.warning(f"Could not generate explanation: {str(e)}")
 
 
 def render_model_performance_tab(models_dict, test_df):
