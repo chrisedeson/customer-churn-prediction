@@ -494,7 +494,7 @@ def render_predict_tab(models_dict, train_df):
                            font-size: 1.2rem; 
                            font-weight: 700;
                            text-align: center;">
-                    {risk_label} Risk
+                    {risk_label}
                 </div>
             </div>
             """, unsafe_allow_html=True)
