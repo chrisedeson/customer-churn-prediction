@@ -6,6 +6,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.patches as mpatches
 import joblib
 from pathlib import Path
 
@@ -39,101 +41,101 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for theme-aware styling
+# Custom CSS for better styling
 st.markdown("""
     <style>
-    /* Main container styling */
-    .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        max-width: 1200px;
+    /* Main container */
+    .stApp {
+        max-width: 1400px;
+        margin: 0 auto;
     }
     
-    /* Header styling */
-    h1 {
-        padding-bottom: 0.5rem;
+    /* Compact form spacing */
+    .stSelectbox, .stNumberInput {
+        margin-bottom: -15px !important;
     }
     
-    h2 {
-        padding-top: 1rem;
-        padding-bottom: 0.5rem;
-    }
-    
-    h3 {
+    div[data-testid="stExpander"] > div {
         padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
     }
     
-    /* Metrics styling */
-    [data-testid="stMetricValue"] {
-        font-size: 2rem;
-        font-weight: 600;
-    }
-    
-    [data-testid="stMetricLabel"] {
-        font-size: 1rem;
-        font-weight: 500;
-    }
-    
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2rem;
-        padding-top: 1rem;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        padding: 0.75rem 1.5rem;
-        font-weight: 500;
-        font-size: 1rem;
-    }
-    
-    /* DataFrame styling */
-    [data-testid="stDataFrame"] {
-        border-radius: 0.5rem;
-    }
-    
-    /* Button styling - more subtle */
+    /* Buttons */
     .stButton > button {
-        border-radius: 0.5rem;
-        font-weight: 500;
-        padding: 0.75rem 2rem;
-        font-size: 1.1rem;
+        width: 100%;
+        border-radius: 8px;
+        height: 3em;
+        font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
         transition: all 0.3s ease;
     }
     
     .stButton > button:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
-    /* Expander styling */
+    /* Metric cards with gradient backgrounds */
+    [data-testid="stMetricValue"] {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    /* Expanders - more compact */
     .streamlit-expanderHeader {
-        font-weight: 500;
-        border-radius: 0.5rem;
-        background-color: rgba(240, 242, 246, 0.5);
+        font-weight: 600;
+        font-size: 1.05rem;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border-radius: 8px;
+        padding: 0.5rem 1rem !important;
     }
     
-    /* Success/Error message styling */
-    .stAlert {
-        border-radius: 0.5rem;
-        padding: 1rem;
+    /* Headers with gradient */
+    h1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
     
-    /* Selectbox and input styling */
-    .stSelectbox, .stNumberInput, .stTextInput {
-        margin-bottom: 1rem;
+    h2, h3 {
+        color: #4a5568;
     }
     
-    /* Better spacing for columns */
-    [data-testid="column"] {
-        padding: 0.5rem;
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
     }
     
-    /* Divider styling */
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        padding: 0 24px;
+        border-radius: 8px 8px 0 0;
+        font-weight: 600;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white !important;
+    }
+    
+    /* Dividers */
     hr {
-        margin: 2rem 0;
+        margin: 1rem 0;
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
     }
     </style>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 
 @st.cache_data
@@ -215,7 +217,7 @@ def create_input_form():
     
     # Demographics section
     with st.expander("👤 Demographics & Account", expanded=True):
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             gender = st.selectbox("Gender", ["Female", "Male"])
@@ -227,6 +229,8 @@ def create_input_form():
         
         with col3:
             tenure = st.number_input("Tenure (months)", min_value=0, max_value=72, value=12)
+        
+        with col4:
             contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
     
     # Services section
@@ -250,7 +254,7 @@ def create_input_form():
     
     # Billing section
     with st.expander("💳 Billing", expanded=True):
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             monthly_charges = st.number_input("Monthly Charges ($)", min_value=0.0, max_value=200.0, value=70.0, step=5.0)
@@ -260,14 +264,13 @@ def create_input_form():
         
         with col3:
             paperless_billing = st.selectbox("Paperless Billing", ["No", "Yes"])
-    
-    col1, col2, col3 = st.columns(3)
-    with col2:
-        payment_method = st.selectbox(
-            "Payment Method",
-            ["Bank transfer (automatic)", "Credit card (automatic)", 
-             "Electronic check", "Mailed check"]
-        )
+        
+        with col4:
+            payment_method = st.selectbox(
+                "Payment Method",
+                ["Bank transfer (automatic)", "Credit card (automatic)", 
+                 "Electronic check", "Mailed check"]
+            )
     
     return {
         'SeniorCitizen': senior_citizen,
@@ -292,8 +295,9 @@ def create_input_form():
     }
 
 
+@st.cache_data(show_spinner=False)
 def engineer_features_from_input(input_dict):
-    """Apply same feature engineering as training data."""
+    """Apply same feature engineering as training data. Cached for performance."""
     df = pd.DataFrame([input_dict])
     
     # Tenure bucket - encoded numerically (alphabetical: 0-6m=0, 12-24m=1, 24m+=2, 6-12m=3)
@@ -339,8 +343,9 @@ def engineer_features_from_input(input_dict):
     return df
 
 
+@st.cache_data(show_spinner=False)
 def encode_input_features(df, train_df):
-    """Encode categorical features to match training data encoding (alphabetical)."""
+    """Encode categorical features to match training data encoding (alphabetical). Cached for performance."""
     df = df.copy()
     
     # Manual encoding maps (alphabetical order as used in data_prep.py)
@@ -406,21 +411,119 @@ def render_predict_tab(models_dict, train_df):
     if st.session_state.prediction_result is not None:
         result = st.session_state.prediction_result
         
-        # Display results with color coding
+        # Display results with enhanced visuals
         st.markdown("<br>", unsafe_allow_html=True)
-        st.subheader("📊 Prediction Results")
         
+        col1, col2 = st.columns([1, 1.2])
+        
+        with col1:
+            # Beautiful gauge chart for churn probability
+            churn_prob = result['churn_percentage']
+            
+            fig, ax = plt.subplots(figsize=(6, 4))
+            fig.patch.set_facecolor('none')
+            ax.set_facecolor('none')
+            
+            # Create gauge
+            import matplotlib.patches as mpatches
+            
+            # Background arc (full semicircle)
+            theta = np.linspace(0, np.pi, 100)
+            r = 1.0
+            
+            # Color segments for gauge background
+            colors_bg = ['#10b981', '#fbbf24', '#ef4444']  # green, yellow, red
+            segments = [(0, 33), (33, 66), (66, 100)]
+            
+            for i, (start, end) in enumerate(segments):
+                theta_seg = np.linspace(np.pi * (100-end)/100, np.pi * (100-start)/100, 50)
+                x = r * np.cos(theta_seg)
+                y = r * np.sin(theta_seg)
+                ax.fill_between(x, 0, y, color=colors_bg[i], alpha=0.3)
+            
+            # Needle
+            angle = np.pi * (100 - churn_prob) / 100
+            needle_length = 0.8
+            ax.plot([0, needle_length * np.cos(angle)], [0, needle_length * np.sin(angle)], 
+                   'k-', linewidth=4, zorder=10)
+            ax.plot([0], [0], 'ko', markersize=12, zorder=11)
+            
+            # Add percentage text in center
+            ax.text(0, -0.3, f'{churn_prob:.1f}%', 
+                   ha='center', va='center', fontsize=32, fontweight='bold',
+                   color='#1f2937')
+            ax.text(0, -0.5, 'Churn Probability', 
+                   ha='center', va='center', fontsize=11, color='#6b7280')
+            
+            # Add scale labels
+            ax.text(-0.9, 0.1, '0', ha='center', fontsize=10, color='#6b7280')
+            ax.text(0, 1.1, '50', ha='center', fontsize=10, color='#6b7280')
+            ax.text(0.9, 0.1, '100', ha='center', fontsize=10, color='#6b7280')
+            
+            ax.set_xlim(-1.2, 1.2)
+            ax.set_ylim(-0.6, 1.3)
+            ax.axis('off')
+            
+            plt.tight_layout()
+            st.pyplot(fig, use_container_width=True)
+            plt.close()
+        
+        with col2:
+            # Risk assessment box
+            risk_label = result['risk_label']
+            risk_colors = {
+                "Low": "#10b981",
+                "Medium": "#fbbf24", 
+                "High": "#ef4444"
+            }
+            risk_color = risk_colors.get(risk_label, "#6b7280")
+            
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, {risk_color}22 0%, {risk_color}11 100%); 
+                        border-left: 5px solid {risk_color}; 
+                        padding: 1.5rem; 
+                        border-radius: 10px; 
+                        margin-bottom: 1rem;">
+                <h3 style="color: #1f2937; margin: 0 0 0.5rem 0; font-size: 1.3rem;">
+                    🎯 Risk Level
+                </h3>
+                <div style="background: {risk_color}; 
+                           color: white; 
+                           padding: 0.75rem 1.5rem; 
+                           border-radius: 8px; 
+                           font-size: 1.2rem; 
+                           font-weight: 700;
+                           text-align: center;">
+                    {risk_label} Risk
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # CLV metrics row
+        st.markdown("<br>", unsafe_allow_html=True)
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            churn_prob = result['churn_percentage']
-            st.metric("Churn Probability", f"{churn_prob:.1f}%")
+            avg_clv = 733.46  # Average from training data
+            clv_diff = result['clv'] - avg_clv
+            st.metric(
+                "💰 Estimated CLV", 
+                f"${result['clv']:.2f}",
+                delta=f"${clv_diff:+.2f} vs avg",
+                delta_color="normal" if clv_diff > 0 else "inverse"
+            )
+        
         with col2:
-            risk_emoji = {"Low": "✅", "Medium": "⚠️", "High": "🚨"}
-            st.metric("Risk Level", f"{risk_emoji.get(result['risk_label'], '')} {result['risk_label']}")
+            st.metric(
+                "💵 Monthly Charges", 
+                f"${result['monthly_charges']:.2f}"
+            )
+        
         with col3:
-            st.metric("Estimated CLV", f"${result['clv']:.2f}",
-                     help="Customer Lifetime Value based on churn probability")
+            st.metric(
+                "📅 Expected Tenure", 
+                f"{result['expected_tenure']:.1f} months"
+            )
         
         # Show CLV breakdown
         with st.expander("💡 CLV Calculation Details", expanded=False):
@@ -504,22 +607,25 @@ def render_model_performance_tab(models_dict, test_df):
         fig.patch.set_facecolor('none')
         ax.set_facecolor('none')
         
-        im = ax.imshow(cm, cmap='Blues', alpha=0.8)
+        # Use beautiful gradient colors
+        cmap = LinearSegmentedColormap.from_list('custom', ['#f0f9ff', '#0284c7', '#0c4a6e'])
+        im = ax.imshow(cm, cmap=cmap, alpha=0.9)
         ax.set_xticks([0, 1])
         ax.set_yticks([0, 1])
-        ax.set_xticklabels(['No Churn', 'Churn'], fontsize=11)
-        ax.set_yticklabels(['No Churn', 'Churn'], fontsize=11)
-        ax.set_xlabel('Predicted', fontsize=12, fontweight='500')
-        ax.set_ylabel('Actual', fontsize=12, fontweight='500')
+        ax.set_xticklabels(['No Churn', 'Churn'], fontsize=12, fontweight='600')
+        ax.set_yticklabels(['No Churn', 'Churn'], fontsize=12, fontweight='600')
+        ax.set_xlabel('Predicted', fontsize=13, fontweight='600', color='#1f2937')
+        ax.set_ylabel('Actual', fontsize=13, fontweight='600', color='#1f2937')
         
-        # Add text annotations
+        # Add text annotations with better styling
         for i in range(2):
             for j in range(2):
                 text = ax.text(j, i, cm[i, j], ha="center", va="center", 
-                             color="white" if cm[i, j] > cm.max() / 2 else "black", 
-                             fontsize=18, fontweight='600')
+                             color="white" if cm[i, j] > cm.max() / 2 else "#1f2937", 
+                             fontsize=22, fontweight='700')
         
-        plt.colorbar(im, ax=ax)
+        cbar = plt.colorbar(im, ax=ax)
+        cbar.ax.tick_params(labelsize=10)
         plt.tight_layout()
         st.pyplot(fig, use_container_width=True)
         plt.close()
@@ -535,20 +641,24 @@ def render_model_performance_tab(models_dict, test_df):
         
         y_test_array = y_test.values if hasattr(y_test, 'values') else y_test
         
-        colors = {'Logistic': '#1f77b4', 'Random Forest': '#ff7f0e', 'XGBoost': '#2ca02c'}
+        colors = {
+            'Logistic': '#8b5cf6',  # Purple
+            'Random Forest': '#f59e0b',  # Orange
+            'XGBoost': '#10b981'  # Green
+        }
         for name, key in [("Logistic", "logistic"), ("Random Forest", "rf"), ("XGBoost", "xgb")]:
             y_pred_proba = predictions[key]['y_pred_proba']
             fpr, tpr, _ = roc_curve(y_test_array, y_pred_proba)
             roc_auc = auc(fpr, tpr)
             ax.plot(fpr, tpr, label=f'{name} (AUC = {roc_auc:.3f})', 
-                   linewidth=2.5, color=colors[name])
+                   linewidth=3, color=colors[name], alpha=0.9)
         
-        ax.plot([0, 1], [0, 1], 'k--', alpha=0.4, linewidth=1.5, label='Random Classifier')
-        ax.set_xlabel('False Positive Rate', fontsize=12, fontweight='500')
-        ax.set_ylabel('True Positive Rate', fontsize=12, fontweight='500')
-        ax.set_title('ROC Curves Comparison', fontsize=13, fontweight='600', pad=15)
-        ax.legend(loc='lower right', frameon=True, fontsize=10)
-        ax.grid(alpha=0.2, linestyle='--')
+        ax.plot([0, 1], [0, 1], color='#94a3b8', linestyle='--', alpha=0.6, linewidth=2, label='Random')
+        ax.set_xlabel('False Positive Rate', fontsize=13, fontweight='600', color='#1f2937')
+        ax.set_ylabel('True Positive Rate', fontsize=13, fontweight='600', color='#1f2937')
+        ax.set_title('ROC Curves Comparison', fontsize=14, fontweight='700', pad=15, color='#1f2937')
+        ax.legend(loc='lower right', frameon=True, fontsize=11, framealpha=0.95, edgecolor='#e5e7eb')
+        ax.grid(alpha=0.15, linestyle='--', color='#94a3b8')
         
         plt.tight_layout()
         st.pyplot(fig, use_container_width=True)
@@ -602,14 +712,27 @@ def render_clv_overview_tab(train_df):
         fig.patch.set_facecolor('none')
         ax.set_facecolor('none')
         
-        ax.hist(train_with_clv['clv'], bins=50, edgecolor='white', 
-               alpha=0.8, color='#1f77b4', linewidth=0.5)
-        ax.set_xlabel('Customer Lifetime Value ($)', fontsize=12, fontweight='500')
-        ax.set_ylabel('Frequency', fontsize=12, fontweight='500')
-        ax.set_title('CLV Distribution', fontsize=13, fontweight='600', pad=15)
-        ax.grid(axis='y', alpha=0.2, linestyle='--')
+        # Beautiful gradient colors for histogram
+        n, bins, patches = ax.hist(train_with_clv['clv'], bins=50, edgecolor='white', 
+                                    alpha=0.9, linewidth=0.8)
+        
+        # Apply gradient coloring to bars
+        cm = plt.colormaps.get_cmap('viridis')
+        bin_centers = 0.5 * (bins[:-1] + bins[1:])
+        col = bin_centers - min(bin_centers)
+        col /= max(col)
+        
+        for c, p in zip(col, patches):
+            plt.setp(p, 'facecolor', cm(c))
+        
+        ax.set_xlabel('Customer Lifetime Value ($)', fontsize=13, fontweight='600', color='#1f2937')
+        ax.set_ylabel('Frequency', fontsize=13, fontweight='600', color='#1f2937')
+        ax.set_title('CLV Distribution', fontsize=14, fontweight='700', pad=15, color='#1f2937')
+        ax.grid(axis='y', alpha=0.15, linestyle='--', color='#94a3b8')
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color('#e5e7eb')
+        ax.spines['bottom'].set_color('#e5e7eb')
         
         plt.tight_layout()
         st.pyplot(fig, use_container_width=True)
@@ -626,21 +749,30 @@ def render_clv_overview_tab(train_df):
         quartiles = churn_by_quartile.index
         churn_rates = churn_by_quartile['churn_rate'] * 100
         
-        colors = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c']
+        # Beautiful gradient colors
+        colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
         bars = ax.bar(quartiles, churn_rates, color=colors, edgecolor='white', 
-                     alpha=0.8, linewidth=0.5)
-        ax.set_xlabel('CLV Quartile', fontsize=12, fontweight='500')
-        ax.set_ylabel('Churn Rate (%)', fontsize=12, fontweight='500')
-        ax.set_title('Churn Rate by CLV Quartile', fontsize=13, fontweight='600', pad=15)
-        ax.grid(axis='y', alpha=0.2, linestyle='--')
+                     alpha=0.9, linewidth=1.5)
+        
+        # Add gradient effect to bars
+        for bar, color in zip(bars, colors):
+            bar.set_edgecolor('white')
+            bar.set_linewidth(1.5)
+        
+        ax.set_xlabel('CLV Quartile', fontsize=13, fontweight='600', color='#1f2937')
+        ax.set_ylabel('Churn Rate (%)', fontsize=13, fontweight='600', color='#1f2937')
+        ax.set_title('Churn Rate by CLV Quartile', fontsize=14, fontweight='700', pad=15, color='#1f2937')
+        ax.grid(axis='y', alpha=0.15, linestyle='--', color='#94a3b8')
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color('#e5e7eb')
+        ax.spines['bottom'].set_color('#e5e7eb')
         
         for bar in bars:
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width() / 2., height,
                    f'{height:.1f}%', ha='center', va='bottom', 
-                   fontsize=10, fontweight='500')
+                   fontsize=11, fontweight='700', color='#1f2937')
         
         plt.tight_layout()
         st.pyplot(fig, use_container_width=True)
