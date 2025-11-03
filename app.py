@@ -685,8 +685,20 @@ def render_clv_overview_tab(train_df):
     """Render the CLV Overview tab."""
     st.header("Customer Lifetime Value Overview")
     
-    # Compute CLV
-    train_with_clv = compute_clv(train_df)
+    # Load models and make predictions for CLV calculation
+    models = load_models()
+    
+    # Prepare features and get predictions
+    X_train = train_df.drop(columns=['Churn'])
+    X_train_scaled = models['scaler'].transform(X_train)
+    
+    # Use logistic regression predictions (most stable probabilities)
+    churn_probs = models['logistic'].predict_proba(X_train_scaled)[:, 1]
+    train_with_clv = train_df.copy()
+    train_with_clv['churn_prob'] = churn_probs
+    
+    # Compute CLV using predicted probabilities
+    train_with_clv = compute_clv(train_with_clv, churn_prob_col='churn_prob')
     train_with_clv = create_clv_quartiles(train_with_clv)
     
     # CLV statistics
