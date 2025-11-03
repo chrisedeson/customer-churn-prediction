@@ -14,10 +14,6 @@ make train          # Train models
 make run            # Start Streamlit app
 ```
 
-## Deployment
-
-Live app: [URL will be added after deployment]
-
 ## Models
 
 - Logistic Regression (baseline)
