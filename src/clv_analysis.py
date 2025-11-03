@@ -13,25 +13,34 @@ from src.config import (
 )
 
 
-def compute_expected_tenure(churn_status):
+def compute_expected_tenure(churn_prob):
     """
-    Compute expected tenure based on churn status.
-    Assumption: Non-churners stay 24 months, churners stay 6 months.
+    Compute expected tenure based on churn probability.
+    Assumption: Expected tenure = (1 - churn_prob) * 24 + churn_prob * 6
+    This gives a weighted average between non-churner (24 months) and churner (6 months) tenure.
     """
-    return np.where(
-        churn_status == 1,
-        EXPECTED_TENURE_CHURNER,
-        EXPECTED_TENURE_NON_CHURNER
-    )
+    return (1 - churn_prob) * EXPECTED_TENURE_NON_CHURNER + churn_prob * EXPECTED_TENURE_CHURNER
 
 
-def compute_clv(df):
+def compute_clv(df, churn_prob_col=None):
     """
     Compute CLV for each customer.
     CLV = MonthlyCharges × ExpectedTenure
+    
+    Args:
+        df: DataFrame with customer data
+        churn_prob_col: Column name containing churn probability (0-1).
+                       If None, uses actual churn label (0 or 1).
     """
     df = df.copy()
-    df['expected_tenure'] = compute_expected_tenure(df[TARGET_COL])
+    
+    if churn_prob_col and churn_prob_col in df.columns:
+        # Use predicted probability for more realistic CLV
+        df['expected_tenure'] = compute_expected_tenure(df[churn_prob_col])
+    else:
+        # Fallback: use actual churn label (0 or 1)
+        df['expected_tenure'] = compute_expected_tenure(df[TARGET_COL])
+    
     df['clv'] = df['MonthlyCharges'] * df['expected_tenure']
     return df
 
@@ -49,7 +58,7 @@ def create_clv_quartiles(df):
 
 def compute_churn_rate_by_quartile(df):
     """Compute churn rate for each CLV quartile."""
-    churn_by_quartile = df.groupby('clv_quartile')[TARGET_COL].agg([
+    churn_by_quartile = df.groupby('clv_quartile', observed=True)[TARGET_COL].agg([
         ('total', 'count'),
         ('churned', 'sum'),
         ('churn_rate', 'mean')
